@@ -1,17 +1,73 @@
 package edu.pucmm.icc352;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import edu.pucmm.icc352.config.HibernateUtil;
+import edu.pucmm.icc352.controladores.AdminControlador;
+import edu.pucmm.icc352.controladores.AsistenciaControlador;
+import edu.pucmm.icc352.controladores.AuthControlador;
+import edu.pucmm.icc352.controladores.OrganizadorControlador;
+import edu.pucmm.icc352.controladores.ParticipanteControlador;
+import edu.pucmm.icc352.servicios.InicializadorServicio;
+import io.javalin.Javalin;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+public class Main {
+
+    public static void main(String[] args) {
+
+        HibernateUtil.getSessionFactory();
+        new InicializadorServicio().crearAdminSiNoExiste();
+
+        AuthControlador authControlador = new AuthControlador();
+        AdminControlador adminControlador = new AdminControlador();
+        OrganizadorControlador organizadorControlador = new OrganizadorControlador();
+        ParticipanteControlador participanteControlador = new ParticipanteControlador();
+        AsistenciaControlador asistenciaControlador = new AsistenciaControlador();
+
+        Javalin app = Javalin.create(config -> {
+            config.startup.showJavalinBanner = false;
+
+            config.routes.get("/", ctx ->
+                    ctx.redirect("/login"));
+
+            config.routes.get("/ping", ctx ->
+                    ctx.result("pong"));
+
+            config.routes.get("/login", authControlador::mostrarLogin);
+            config.routes.post("/login", authControlador::procesarLogin);
+            config.routes.get("/me", authControlador::verSesionActual);
+            config.routes.get("/logout", authControlador::logout);
+
+            config.routes.get("/admin/dashboard", adminControlador::dashboard);
+            config.routes.get("/admin/usuarios", adminControlador::listarUsuarios);
+            config.routes.get("/admin/usuarios/nuevo", adminControlador::mostrarFormularioNuevoUsuario);
+            config.routes.post("/admin/usuarios/nuevo", adminControlador::guardarNuevoUsuario);
+            config.routes.get("/admin/usuarios/bloquear/{id}", adminControlador::bloquearUsuario);
+            config.routes.get("/admin/usuarios/desbloquear/{id}", adminControlador::desbloquearUsuario);
+            config.routes.get("/admin/eventos", adminControlador::listarEventos);
+            config.routes.get("/admin/eventos/eliminar/{id}", adminControlador::eliminarEvento);
+
+            config.routes.get("/organizador/dashboard", organizadorControlador::dashboard);
+            config.routes.get("/organizador/eventos", organizadorControlador::listarMisEventos);
+            config.routes.get("/organizador/eventos/nuevo", organizadorControlador::mostrarFormularioNuevoEvento);
+            config.routes.post("/organizador/eventos/nuevo", organizadorControlador::guardarNuevoEvento);
+            config.routes.get("/organizador/eventos/editar/{id}", organizadorControlador::mostrarFormularioEditarEvento);
+            config.routes.post("/organizador/eventos/editar/{id}", organizadorControlador::guardarEdicionEvento);
+            config.routes.get("/organizador/eventos/publicar/{id}", organizadorControlador::publicarEvento);
+            config.routes.get("/organizador/eventos/despublicar/{id}", organizadorControlador::despublicarEvento);
+            config.routes.get("/organizador/eventos/cancelar/{id}", organizadorControlador::cancelarEvento);
+
+            config.routes.get("/participante/dashboard", participanteControlador::dashboard);
+            config.routes.get("/participante/eventos", participanteControlador::listarEventosPublicados);
+            config.routes.get("/participante/eventos/inscribirse/{id}", participanteControlador::inscribirseEvento);
+            config.routes.get("/participante/mis-inscripciones", participanteControlador::listarMisInscripciones);
+            config.routes.get("/participante/inscripciones/cancelar/{id}", participanteControlador::cancelarInscripcion);
+
+            config.routes.get("/asistencia/registrar", asistenciaControlador::mostrarFormularioEscaneo);
+            config.routes.post("/asistencia/registrar", asistenciaControlador::registrarAsistencia);
+            config.routes.get("/eventos/resumen/{id}", asistenciaControlador::verResumenEvento);
+        });
+
+        app.start(7000);
+
+        System.out.println("Servidor iniciado en http://localhost:7000");
     }
 }
