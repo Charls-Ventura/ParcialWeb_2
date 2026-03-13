@@ -9,6 +9,10 @@ import edu.pucmm.icc352.controladores.ParticipanteControlador;
 import edu.pucmm.icc352.servicios.InicializadorServicio;
 import io.javalin.Javalin;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -31,8 +35,25 @@ public class Main {
             config.routes.get("/ping", ctx ->
                     ctx.result("pong"));
 
+            config.routes.get("/logo-pucmm", ctx -> {
+                Path rutaLogo = Path.of("src", "main", "resources", "public", "img", "logo-pucmm.png");
+
+                if (!Files.exists(rutaLogo)) {
+                    ctx.status(404).result("Logo no encontrado");
+                    return;
+                }
+
+                InputStream inputStream = Files.newInputStream(rutaLogo);
+                ctx.contentType("image/png");
+                ctx.result(inputStream);
+            });
+
             config.routes.get("/login", authControlador::mostrarLogin);
             config.routes.post("/login", authControlador::procesarLogin);
+
+            config.routes.get("/registro", authControlador::mostrarFormularioRegistro);
+            config.routes.post("/registro", authControlador::procesarRegistro);
+
             config.routes.get("/me", authControlador::verSesionActual);
             config.routes.get("/logout", authControlador::logout);
 
