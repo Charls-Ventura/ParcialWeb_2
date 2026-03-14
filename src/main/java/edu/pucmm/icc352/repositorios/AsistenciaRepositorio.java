@@ -60,4 +60,16 @@ public class AsistenciaRepositorio {
             throw new RuntimeException("Error contando asistencias por evento", e);
         }
     }
+
+    public List<Asistencia> listarPorUsuario(Usuario usuario) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "from Asistencia a where a.usuario = :usuario order by a.fechaRegistro desc";
+            return session.createQuery(hql, Asistencia.class)
+                    .setParameter("usuario", usuario)
+                    .list();
+        } catch (Exception e) {
+            throw new RuntimeException("Error listando asistencias por usuario", e);
+        }
+    }
+
 }

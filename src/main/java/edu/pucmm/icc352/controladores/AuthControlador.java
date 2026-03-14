@@ -5,6 +5,7 @@ import edu.pucmm.icc352.modelos.Usuario;
 import edu.pucmm.icc352.servicios.UsuarioServicio;
 import edu.pucmm.icc352.utilidades.SessionUtil;
 import io.javalin.http.Context;
+import edu.pucmm.icc352.utilidades.LayoutUtil;
 
 public class AuthControlador {
 
@@ -85,79 +86,322 @@ public class AuthControlador {
         Long usuarioId = SessionUtil.obtenerUsuarioId(ctx);
         Usuario usuario = usuarioServicio.buscarPorId(usuarioId);
 
-        String enlacePanel = "";
         if ("ADMIN".equals(usuario.getRol().name())) {
-            enlacePanel = "<a href='/admin/dashboard'>Ir al panel admin</a>";
-        } else if ("ORGANIZADOR".equals(usuario.getRol().name())) {
-            enlacePanel = "<a href='/organizador/dashboard'>Ir al panel organizador</a>";
-        } else if ("PARTICIPANTE".equals(usuario.getRol().name())) {
-            enlacePanel = "<a href='/participante/dashboard'>Ir al panel participante</a>";
+            String contenido = """
+                <div class="panel">
+                    <div class="panel-top"></div>
+
+                    <div class="tabla-wrap">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th style="width:220px;">ID</th>
+                                    <td>%d</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>%s</td>
+                                </tr>
+                                <tr>
+                                    <th>Correo</th>
+                                    <td>%s</td>
+                                </tr>
+                                <tr>
+                                    <th>Rol</th>
+                                    <td><span class="badge badge-admin">ADMIN</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Estado</th>
+                                    <td>%s</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="padding:22px; display:flex; gap:12px; flex-wrap:wrap;">
+                        <a href="/admin/dashboard" class="btn btn-principal">Ir al dashboard</a>
+                        <a href="/logout" class="btn btn-alerta">Cerrar sesión</a>
+                    </div>
+                </div>
+                """.formatted(
+                    usuario.getId(),
+                    usuario.getNombre(),
+                    usuario.getCorreo(),
+                    usuario.isBloqueado()
+                            ? "<span class='badge badge-bloqueado'>Bloqueado</span>"
+                            : "<span class='badge badge-activo'>Activo</span>"
+            );
+
+            ctx.html(LayoutUtil.layoutAdmin(
+                    "Mi sesión",
+                    "Consulta la información del usuario autenticado con permisos de administrador.",
+                    contenido
+            ));
+            return;
         }
 
-        String html = """
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Sesión actual</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background: #f4f4f4;
-                            margin: 0;
-                            padding: 40px;
-                        }
-                        .contenedor {
-                            max-width: 600px;
-                            margin: auto;
-                            background: white;
-                            padding: 24px;
-                            border-radius: 10px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        a {
-                            display: inline-block;
-                            margin-top: 12px;
-                            margin-right: 10px;
-                            text-decoration: none;
-                            padding: 10px 14px;
-                            border-radius: 6px;
-                            border: none;
-                            background: #0d6efd;
-                            color: white;
-                            cursor: pointer;
-                        }
-                        .secundario {
-                            background: #6c757d;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="contenedor">
-                        <h1>Usuario autenticado</h1>
-                        <p><strong>ID:</strong> %d</p>
-                        <p><strong>Nombre:</strong> %s</p>
-                        <p><strong>Correo:</strong> %s</p>
-                        <p><strong>Rol:</strong> %s</p>
-                        <p><strong>Bloqueado:</strong> %s</p>
+        if ("ORGANIZADOR".equals(usuario.getRol().name())) {
+            String contenido = """
+                <div class="panel">
+                    <div class="panel-top"></div>
 
-                        %s
-                        <a href="/logout" class="secundario">Cerrar sesión</a>
-                        <a href="/">Ir al inicio</a>
+                    <div class="tabla-wrap">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th style="width:220px;">ID</th>
+                                    <td>%d</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>%s</td>
+                                </tr>
+                                <tr>
+                                    <th>Correo</th>
+                                    <td>%s</td>
+                                </tr>
+                                <tr>
+                                    <th>Rol</th>
+                                    <td><span class="badge badge-organizador">ORGANIZADOR</span></td>
+                                </tr>
+                                <tr>
+                                    <th>Estado</th>
+                                    <td>%s</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </body>
-                </html>
+
+                    <div style="padding:22px; display:flex; gap:12px; flex-wrap:wrap;">
+                        <a href="/organizador/dashboard" class="btn btn-principal">Ir al dashboard</a>
+                        <a href="/logout" class="btn btn-alerta">Cerrar sesión</a>
+                    </div>
+                </div>
                 """.formatted(
+                    usuario.getId(),
+                    usuario.getNombre(),
+                    usuario.getCorreo(),
+                    usuario.isBloqueado()
+                            ? "<span class='badge badge-bloqueado'>Bloqueado</span>"
+                            : "<span class='badge badge-activo'>Activo</span>"
+            );
+
+            ctx.html(LayoutUtil.layoutOrganizador(
+                    "Mi sesión",
+                    "Consulta la información del usuario autenticado con permisos de organizador.",
+                    contenido
+            ));
+            return;
+        }
+
+        String contenido = """
+            <style>
+                .grid-principal {
+                    display:grid;
+                    grid-template-columns: 0.95fr 1.05fr;
+                    gap:22px;
+                    align-items:start;
+                }
+
+                .panel-info {
+                    background: linear-gradient(180deg,#f8fbff,#eef5ff);
+                    border: 1px solid #dbe7ff;
+                    border-radius: 20px;
+                    padding: 24px;
+                    box-shadow: 0 10px 24px rgba(13, 110, 253, 0.10);
+                }
+
+                .panel-info h2 {
+                    margin-top:0;
+                    margin-bottom:14px;
+                    font-size:28px;
+                    color:#0a3d91;
+                }
+
+                .panel-info p {
+                    margin:0 0 16px 0;
+                    font-size:16px;
+                    line-height:1.7;
+                    color:#374151;
+                }
+
+                .panel-info ul {
+                    margin:0;
+                    padding-left:20px;
+                    color:#374151;
+                }
+
+                .panel-info li {
+                    margin-bottom:12px;
+                    font-size:15px;
+                    line-height:1.6;
+                }
+
+                .nota {
+                    margin-top:18px;
+                    background:#fff9e8;
+                    border-left:5px solid #f4c542;
+                    border-radius:14px;
+                    padding:14px 15px;
+                    color:#5b4a17;
+                    font-size:14px;
+                    line-height:1.6;
+                }
+
+                .panel-datos {
+                    background: linear-gradient(180deg,#ffffff,#fffdf7);
+                    border: 1px solid #f3e6b2;
+                    border-radius: 20px;
+                    padding: 24px;
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+                }
+
+                .panel-datos h2 {
+                    margin-top:0;
+                    margin-bottom:18px;
+                    font-size:28px;
+                    color:#111827;
+                }
+
+                .datos-grid {
+                    display:grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap:14px;
+                    margin-bottom:18px;
+                }
+
+                .dato {
+                    background:#f8fafc;
+                    border:1px solid #e5e7eb;
+                    border-radius:16px;
+                    padding:16px;
+                }
+
+                .dato-titulo {
+                    font-size:13px;
+                    color:#6b7280;
+                    font-weight:bold;
+                    text-transform:uppercase;
+                    letter-spacing:0.4px;
+                    margin-bottom:8px;
+                }
+
+                .dato-valor {
+                    font-size:17px;
+                    color:#111827;
+                    font-weight:bold;
+                    line-height:1.5;
+                    word-break:break-word;
+                }
+
+                .acciones {
+                    display:flex;
+                    gap:12px;
+                    flex-wrap:wrap;
+                    margin-top:8px;
+                }
+
+                @media (max-width: 980px) {
+                    .grid-principal {
+                        grid-template-columns:1fr;
+                    }
+                }
+
+                @media (max-width: 680px) {
+                    .datos-grid {
+                        grid-template-columns:1fr;
+                    }
+                }
+
+                @media (max-width: 560px) {
+                    .panel-info h2,
+                    .panel-datos h2 {
+                        font-size:24px;
+                    }
+
+                    .acciones {
+                        flex-direction:column;
+                    }
+
+                    .acciones .btn {
+                        width:100%%;
+                        text-align:center;
+                    }
+                }
+            </style>
+
+            <div class="grid-principal">
+                <div class="panel-info">
+                    <h2>Mi cuenta de participante</h2>
+
+                    <p>
+                        Desde esta sección puedes consultar la información principal de tu sesión activa y verificar que tu cuenta se encuentre correctamente disponible dentro del sistema.
+                    </p>
+
+                    <ul>
+                        <li><strong>Rol:</strong> participante del sistema académico.</li>
+                        <li><strong>Acceso:</strong> eventos publicados, inscripciones y código QR individual.</li>
+                        <li><strong>Uso principal:</strong> consultar eventos, inscribirse y mostrar QR para asistencia.</li>
+                    </ul>
+
+                    <div class="nota">
+                        Recomendación: utiliza la sección de <strong>Mis inscripciones</strong> para mostrar tu QR cuando necesites validar tu asistencia ante el organizador o administrador.
+                    </div>
+                </div>
+
+                <div class="panel-datos">
+                    <h2>Datos de sesión</h2>
+
+                    <div class="datos-grid">
+                        <div class="dato">
+                            <div class="dato-titulo">ID</div>
+                            <div class="dato-valor">%d</div>
+                        </div>
+
+                        <div class="dato">
+                            <div class="dato-titulo">Estado</div>
+                            <div class="dato-valor">%s</div>
+                        </div>
+
+                        <div class="dato">
+                            <div class="dato-titulo">Nombre</div>
+                            <div class="dato-valor">%s</div>
+                        </div>
+
+                        <div class="dato">
+                            <div class="dato-titulo">Rol</div>
+                            <div class="dato-valor"><span class="badge badge-programado">PARTICIPANTE</span></div>
+                        </div>
+
+                        <div class="dato" style="grid-column: 1 / -1;">
+                            <div class="dato-titulo">Correo</div>
+                            <div class="dato-valor">%s</div>
+                        </div>
+                    </div>
+
+                    <div class="acciones">
+                        <a href="/participante/dashboard" class="btn btn-principal">Ir al dashboard</a>
+                        <a href="/participante/mis-inscripciones" class="btn btn-secundario">Ver mis inscripciones</a>
+                        <a href="/logout" class="btn btn-alerta">Cerrar sesión</a>
+                    </div>
+                </div>
+            </div>
+            """.formatted(
                 usuario.getId(),
+                usuario.isBloqueado()
+                        ? "<span class='badge badge-cancelado'>Bloqueado</span>"
+                        : "<span class='badge badge-activo'>Activo</span>",
                 usuario.getNombre(),
-                usuario.getCorreo(),
-                usuario.getRol().name(),
-                usuario.isBloqueado() ? "Sí" : "No",
-                enlacePanel
+                usuario.getCorreo()
         );
 
-        ctx.html(html);
+        ctx.html(LayoutUtil.layoutParticipante(
+                "Mi sesión",
+                "Consulta la información del usuario autenticado y verifica los datos principales de tu cuenta de participante.",
+                contenido
+        ));
     }
+
 
     public void logout(Context ctx) {
         SessionUtil.cerrarSesion(ctx);
@@ -316,295 +560,320 @@ public class AuthControlador {
 
     private String obtenerEstilosAuth() {
         return """
-            * {
-                box-sizing: border-box;
-            }
+        * {
+            box-sizing: border-box;
+        }
 
-            body {
-                margin: 0;
-                min-height: 100vh;
-                font-family: Arial, sans-serif;
-                background:
-                    radial-gradient(circle at 10% 10%, rgba(255, 214, 77, 0.25), transparent 18%),
-                    radial-gradient(circle at 90% 85%, rgba(255, 214, 77, 0.18), transparent 20%),
-                    linear-gradient(135deg, #0a3d91, #0d47a1 55%, #1565c0);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 30px 20px;
-            }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255, 214, 77, 0.25), transparent 18%),
+                radial-gradient(circle at 90% 85%, rgba(255, 214, 77, 0.18), transparent 20%),
+                linear-gradient(135deg, #0a3d91, #0d47a1 55%, #1565c0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 34px 20px 40px;
+        }
 
+        .contenedor {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
+            padding: 34px 32px 28px;
+            overflow: hidden;
+        }
+
+        .decoracion-superior {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #f4c542, #ffd95a, #f4c542);
+        }
+
+        .decoracion-circulo-1 {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(244, 197, 66, 0.12);
+            top: -20px;
+            right: -20px;
+        }
+
+        .decoracion-circulo-2 {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(244, 197, 66, 0.18);
+            top: 28px;
+            right: 55px;
+        }
+
+        .encabezado {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 24px;
+        }
+
+        .logo-bloque {
+            width: 92px;
+            height: 92px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #fff8e1, #fffdf5);
+            border: 2px solid #f4d56a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 18px rgba(244, 197, 66, 0.22);
+            color: #0a3d91;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .logo-bloque img {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .titulo-principal {
+            margin: 0;
+            font-size: 38px;
+            line-height: 1.15;
+            color: #0a3d91;
+            font-weight: bold;
+        }
+
+        .subtitulo {
+            margin: 12px 0 0 0;
+            font-size: 18px;
+            color: #4b5563;
+            line-height: 1.6;
+            max-width: 520px;
+        }
+
+        .linea-dorada {
+            width: 130px;
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #f4c542, #ffd95a);
+            margin-top: 18px;
+        }
+
+        .caja-formulario {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(180deg, #ffffff, #fffdf7);
+            border: 1px solid #f3e6b2;
+            border-radius: 20px;
+            padding: 28px 24px 22px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        }
+
+        .titulo-formulario {
+            margin: 0 0 22px 0;
+            font-size: 29px;
+            text-align: center;
+            color: #111827;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 16px;
+            margin-bottom: 18px;
+            border: 1px solid #d7dde7;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        input:focus {
+            border-color: #f4c542;
+            box-shadow: 0 0 0 4px rgba(244, 197, 66, 0.18);
+            transform: translateY(-1px);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #0a3d91, #174ea6);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(10, 61, 145, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            opacity: 0.97;
+        }
+
+        .info {
+            margin-top: 20px;
+            background: linear-gradient(90deg, #fff9e8, #fffdf7);
+            border-left: 5px solid #f4c542;
+            border-radius: 14px;
+            padding: 15px 16px;
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .info strong {
+            color: #111827;
+        }
+
+        .nota-publica {
+            margin-bottom: 18px;
+            background: linear-gradient(90deg, #fff9e8, #fffdf7);
+            border-left: 5px solid #f4c542;
+            border-radius: 14px;
+            padding: 15px 16px;
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .mensaje-exito {
+            margin-bottom: 18px;
+            background: #ecfdf3;
+            border-left: 5px solid #22c55e;
+            color: #166534;
+            border-radius: 14px;
+            padding: 15px 16px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .mensaje-error {
+            margin-bottom: 18px;
+            background: #fef2f2;
+            border-left: 5px solid #ef4444;
+            color: #991b1b;
+            border-radius: 14px;
+            padding: 15px 16px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .acciones-extra {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .acciones-extra a {
+            color: #0a3d91;
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: 6px;
+        }
+
+        .acciones-extra a:hover {
+            text-decoration: underline;
+        }
+
+        .mini-detalles {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+            justify-content: center;
+        }
+
+        .mini-detalles span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f4c542;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 720px) {
             .contenedor {
-                position: relative;
-                width: 100%;
-                max-width: 510px;
-                background: #ffffff;
-                border-radius: 22px;
-                box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
-                padding: 30px 28px 24px;
-                overflow: hidden;
-            }
-
-            .decoracion-superior {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 8px;
-                background: linear-gradient(90deg, #f4c542, #ffd95a, #f4c542);
-            }
-
-            .decoracion-circulo-1 {
-                position: absolute;
-                width: 90px;
-                height: 90px;
-                border-radius: 50%;
-                background: rgba(244, 197, 66, 0.12);
-                top: -20px;
-                right: -20px;
-            }
-
-            .decoracion-circulo-2 {
-                position: absolute;
-                width: 55px;
-                height: 55px;
-                border-radius: 50%;
-                background: rgba(244, 197, 66, 0.18);
-                top: 28px;
-                right: 55px;
-            }
-
-            .encabezado {
-                position: relative;
-                z-index: 1;
-                margin-bottom: 22px;
-            }
-
-            .logo-bloque {
-                width: 86px;
-                height: 86px;
-                border-radius: 18px;
-                background: linear-gradient(180deg, #fff8e1, #fffdf5);
-                border: 2px solid #f4d56a;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 14px;
-                box-shadow: 0 8px 18px rgba(244, 197, 66, 0.22);
-                color: #0a3d91;
-                font-weight: bold;
-                font-size: 18px;
-                text-align: center;
-            }
-
-            .logo-bloque img {
-                width: 64px;
-                height: 64px;
-                object-fit: contain;
-                display: block;
+                max-width: 580px;
             }
 
             .titulo-principal {
-                margin: 0;
-                font-size: 31px;
-                line-height: 1.18;
-                color: #0a3d91;
-                font-weight: bold;
+                font-size: 32px;
             }
 
             .subtitulo {
-                margin: 10px 0 0 0;
-                font-size: 15px;
-                color: #4b5563;
-                line-height: 1.5;
-                max-width: 430px;
-            }
-
-            .linea-dorada {
-                width: 110px;
-                height: 5px;
-                border-radius: 999px;
-                background: linear-gradient(90deg, #f4c542, #ffd95a);
-                margin-top: 18px;
-            }
-
-            .caja-formulario {
-                position: relative;
-                z-index: 1;
-                background: linear-gradient(180deg, #ffffff, #fffdf7);
-                border: 1px solid #f3e6b2;
-                border-radius: 18px;
-                padding: 24px 20px 20px;
-                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+                font-size: 16px;
             }
 
             .titulo-formulario {
-                margin: 0 0 20px 0;
-                font-size: 24px;
-                text-align: center;
-                color: #111827;
+                font-size: 25px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .contenedor {
+                padding: 24px 18px 20px;
             }
 
-            label {
-                display: block;
-                margin-bottom: 7px;
-                font-size: 14px;
-                font-weight: bold;
-                color: #1f2937;
+            .logo-bloque {
+                width: 82px;
+                height: 82px;
             }
 
-            input {
-                width: 100%;
-                padding: 14px 15px;
-                margin-bottom: 18px;
-                border: 1px solid #d7dde7;
-                border-radius: 12px;
+            .logo-bloque img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .titulo-principal {
+                font-size: 28px;
+            }
+
+            .subtitulo {
                 font-size: 15px;
-                outline: none;
-                background: #ffffff;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
             }
 
-            input:focus {
-                border-color: #f4c542;
-                box-shadow: 0 0 0 4px rgba(244, 197, 66, 0.18);
-                transform: translateY(-1px);
+            .titulo-formulario {
+                font-size: 23px;
             }
 
+            input,
             button {
-                width: 100%;
-                padding: 14px;
-                border: none;
-                border-radius: 12px;
-                background: linear-gradient(90deg, #0a3d91, #174ea6);
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                box-shadow: 0 10px 22px rgba(10, 61, 145, 0.22);
-                transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+                font-size: 15px;
             }
 
-            button:hover {
-                transform: translateY(-1px);
-                opacity: 0.97;
-            }
-
-            .info {
-                margin-top: 18px;
-                background: linear-gradient(90deg, #fff9e8, #fffdf7);
-                border-left: 5px solid #f4c542;
-                border-radius: 14px;
-                padding: 14px 15px;
-                color: #374151;
-                font-size: 14px;
-            }
-
-            .info strong {
-                color: #111827;
-            }
-
-            .nota-publica {
-                margin-bottom: 18px;
-                background: linear-gradient(90deg, #fff9e8, #fffdf7);
-                border-left: 5px solid #f4c542;
-                border-radius: 14px;
-                padding: 14px 15px;
-                color: #374151;
-                font-size: 14px;
-            }
-
-            .mensaje-exito {
-                margin-bottom: 18px;
-                background: #ecfdf3;
-                border-left: 5px solid #22c55e;
-                color: #166534;
-                border-radius: 14px;
-                padding: 14px 15px;
-                font-size: 14px;
-            }
-
+            .acciones-extra,
+            .info,
+            .nota-publica,
+            .mensaje-exito,
             .mensaje-error {
-                margin-bottom: 18px;
-                background: #fef2f2;
-                border-left: 5px solid #ef4444;
-                color: #991b1b;
-                border-radius: 14px;
-                padding: 14px 15px;
                 font-size: 14px;
             }
-
-            .acciones-extra {
-                margin-top: 16px;
-                text-align: center;
-                font-size: 14px;
-                color: #374151;
-            }
-
-            .acciones-extra a {
-                color: #0a3d91;
-                font-weight: bold;
-                text-decoration: none;
-                margin-left: 6px;
-            }
-
-            .acciones-extra a:hover {
-                text-decoration: underline;
-            }
-
-            .mini-detalles {
-                display: flex;
-                gap: 8px;
-                margin-top: 16px;
-                justify-content: center;
-            }
-
-            .mini-detalles span {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: #f4c542;
-                opacity: 0.9;
-            }
-
-            @media (max-width: 560px) {
-                .contenedor {
-                    padding: 26px 18px 20px;
-                }
-
-                .logo-bloque {
-                    width: 76px;
-                    height: 76px;
-                }
-
-                .logo-bloque img {
-                    width: 56px;
-                    height: 56px;
-                }
-
-                .titulo-principal {
-                    font-size: 26px;
-                }
-
-                .subtitulo {
-                    font-size: 14px;
-                }
-
-                .caja-formulario {
-                    padding: 20px 16px 18px;
-                }
-
-                .titulo-formulario {
-                    font-size: 22px;
-                }
-            }
-
-            @media (max-width: 400px) {
-                .titulo-principal {
-                    font-size: 23px;
-                }
-            }
-            """;
+        }
+        """;
     }
 
     private String bloqueMensajeExito(String mensaje) {

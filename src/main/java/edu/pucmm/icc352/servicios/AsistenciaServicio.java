@@ -17,6 +17,7 @@ public class AsistenciaServicio {
     private final InscripcionRepositorio inscripcionRepositorio = new InscripcionRepositorio();
 
     public Asistencia registrarAsistenciaPorTokenQr(String tokenQr) {
+
         if (tokenQr == null || tokenQr.isBlank()) {
             throw new RuntimeException("El token QR es obligatorio.");
         }
@@ -35,10 +36,14 @@ public class AsistenciaServicio {
             throw new RuntimeException("El evento está cancelado.");
         }
 
-        if (!LocalDate.now().isEqual(evento.getFecha())) {
-            throw new RuntimeException("La asistencia solo se puede registrar el día del evento.");
+        LocalDate hoy = LocalDate.now();
+
+        // no permitir si el evento ya pasó
+        if (evento.getFecha().isBefore(hoy)) {
+            throw new RuntimeException("El evento ya ocurrió. No se puede registrar asistencia.");
         }
 
+        // evitar registrar asistencia dos veces
         if (asistenciaRepositorio.buscarPorUsuarioYEvento(usuario, evento).isPresent()) {
             throw new RuntimeException("La asistencia ya fue registrada para este usuario.");
         }
@@ -50,6 +55,12 @@ public class AsistenciaServicio {
     public boolean yaAsistio(Usuario usuario, Evento evento) {
         return asistenciaRepositorio.buscarPorUsuarioYEvento(usuario, evento).isPresent();
     }
+
+    public List<Asistencia> listarPorUsuario(Usuario usuario) {
+        return asistenciaRepositorio.listarPorUsuario(usuario);
+    }
+
+
 
     public List<Asistencia> listarPorEvento(Evento evento) {
         return asistenciaRepositorio.listarPorEvento(evento);

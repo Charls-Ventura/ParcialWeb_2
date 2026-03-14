@@ -79,6 +79,15 @@ public class InscripcionServicio {
                 .orElseThrow(() -> new RuntimeException("No se encontró una inscripción con ese token QR."));
     }
 
+    public Inscripcion buscarPorId(Long id) {
+        if (id == null) {
+            throw new RuntimeException("El id de la inscripción es obligatorio.");
+        }
+
+        return inscripcionRepositorio.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("No se encontró la inscripción."));
+    }
+
     public List<Inscripcion> listarPorEvento(Evento evento) {
         return inscripcionRepositorio.listarPorEvento(evento);
     }

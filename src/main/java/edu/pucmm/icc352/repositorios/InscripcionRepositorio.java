@@ -96,4 +96,15 @@ public class InscripcionRepositorio {
             throw new RuntimeException("Error contando inscripciones activas", e);
         }
     }
+
+    public Optional<Inscripcion> buscarPorId(Long id) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Inscripcion inscripcion = session.get(Inscripcion.class, id);
+            return Optional.ofNullable(inscripcion);
+        } catch (Exception e) {
+            throw new RuntimeException("Error buscando inscripcion por id", e);
+        }
+    }
+
+
 }

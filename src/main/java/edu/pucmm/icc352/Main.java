@@ -8,6 +8,8 @@ import edu.pucmm.icc352.controladores.OrganizadorControlador;
 import edu.pucmm.icc352.controladores.ParticipanteControlador;
 import edu.pucmm.icc352.servicios.InicializadorServicio;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
+
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -29,6 +31,12 @@ public class Main {
         Javalin app = Javalin.create(config -> {
             config.startup.showJavalinBanner = false;
 
+            config.staticFiles.add(staticFiles -> {
+                staticFiles.hostedPath = "/";
+                staticFiles.directory = "public";
+                staticFiles.location = Location.CLASSPATH;
+            });
+
             config.routes.get("/", ctx ->
                     ctx.redirect("/login"));
 
@@ -42,6 +50,7 @@ public class Main {
                     ctx.status(404).result("Logo no encontrado");
                     return;
                 }
+
 
                 InputStream inputStream = Files.newInputStream(rutaLogo);
                 ctx.contentType("image/png");
@@ -81,10 +90,17 @@ public class Main {
             config.routes.get("/participante/eventos/inscribirse/{id}", participanteControlador::inscribirseEvento);
             config.routes.get("/participante/mis-inscripciones", participanteControlador::listarMisInscripciones);
             config.routes.get("/participante/inscripciones/cancelar/{id}", participanteControlador::cancelarInscripcion);
+            config.routes.post("/participante/validar-qr", participanteControlador::validarQrPropio);
 
+            config.routes.get("/asistencia/escanear", asistenciaControlador::mostrarEscanerQr);
             config.routes.get("/asistencia/registrar", asistenciaControlador::mostrarFormularioEscaneo);
             config.routes.post("/asistencia/registrar", asistenciaControlador::registrarAsistencia);
+            config.routes.get("/asistencia/evento/{id}", asistenciaControlador::verInscritosEvento);
+            config.routes.get("/asistencia/registrar-inscripcion/{id}", asistenciaControlador::registrarAsistenciaPorInscripcion);
             config.routes.get("/eventos/resumen/{id}", asistenciaControlador::verResumenEvento);
+            config.routes.get("/asistencia/validar-inscripcion-qr/{id}", asistenciaControlador::mostrarValidadorQrInscripcion);
+            config.routes.post("/asistencia/validar-inscripcion-qr/{id}", asistenciaControlador::validarQrContraInscripcion);
+
         });
 
         app.start(7000);

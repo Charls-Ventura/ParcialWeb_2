@@ -23,6 +23,7 @@ public class EventoServicio {
 
         validarDatosEvento(titulo, descripcion, fecha, hora, ubicacion, cupoMaximo, organizador);
         validarOrganizador(organizador);
+        validarFechaEvento(fecha, hora);
 
         Evento evento = new Evento(
                 titulo.trim(),
@@ -66,6 +67,8 @@ public class EventoServicio {
         if (hora == null) {
             throw new RuntimeException("La hora es obligatoria.");
         }
+
+        validarFechaEvento(fecha, hora);
 
         if (ubicacion == null || ubicacion.isBlank()) {
             throw new RuntimeException("La ubicación es obligatoria.");
@@ -168,6 +171,24 @@ public class EventoServicio {
         }
     }
 
+    private void validarFechaEvento(LocalDate fecha, LocalTime hora) {
+
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        if (fecha.isBefore(hoy)) {
+            throw new RuntimeException("No se puede crear o editar un evento con una fecha pasada.");
+        }
+
+        if (fecha.isEqual(hoy)) {
+            throw new RuntimeException("No se permiten eventos para el mismo día. Debe seleccionar una fecha futura.");
+        }
+
+        if (fecha.isEqual(hoy) && hora.isBefore(ahora)) {
+            throw new RuntimeException("La hora del evento no puede ser anterior a la hora actual.");
+        }
+    }
+
     private void validarOrganizador(Usuario organizador) {
         if (organizador.getRol() != Rol.ORGANIZADOR && organizador.getRol() != Rol.ADMIN) {
             throw new RuntimeException("Solo un organizador o admin puede crear eventos.");
@@ -176,5 +197,35 @@ public class EventoServicio {
         if (organizador.isBloqueado()) {
             throw new RuntimeException("El organizador está bloqueado.");
         }
+    }
+
+    public boolean eventoEnCurso(Evento evento) {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        return evento.getFecha().isEqual(hoy) && !ahora.isBefore(evento.getHora());
+    }
+
+    public String obtenerEstadoTiempo(Evento evento) {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        if (evento.getFecha().isBefore(hoy)) {
+            return "FINALIZADO";
+        }
+
+        if (evento.getFecha().isEqual(hoy)) {
+            if (ahora.isBefore(evento.getHora())) {
+                return "PROGRAMADO";
+            }
+            return "EN_CURSO";
+        }
+
+        return "PROGRAMADO";
+    }
+
+
+    public boolean eventoYaPaso(Evento evento) {
+        return "FINALIZADO".equals(obtenerEstadoTiempo(evento));
     }
 }
