@@ -16,6 +16,7 @@ dependencies {
     implementation 'org.hibernate.orm:hibernate-core:6.6.44.Final'
     implementation 'com.h2database:h2:2.4.240'
     implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'org.postgresql:postgresql:42.7.3'
 
     implementation 'com.google.zxing:core:3.5.4'
     implementation 'com.google.zxing:javase:3.5.4'

@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c121dcca-88a6-4a24-90db-168234862ce6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DockerFile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/eventosdb.lock.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/eventosdb.lock.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/edu/pucmm/icc352/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/edu/pucmm/icc352/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,7 +100,7 @@
       <workItem from="1773458369201" duration="2920000" />
       <workItem from="1773498459595" duration="8535000" />
       <workItem from="1773508859741" duration="18825000" />
-      <workItem from="1773532665759" duration="2397000" />
+      <workItem from="1773532665759" duration="3913000" />
     </task>
     <servers />
   </component>
