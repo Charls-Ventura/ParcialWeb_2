@@ -103,7 +103,8 @@ public class Main {
 
         });
 
-        app.start(7000);
+        int puerto = Integer.parseInt(System.getenv().getOrDefault("PORT", "7000"));
+        app.start(puerto);
 
         System.out.println("Servidor iniciado en http://localhost:7000");
     }
